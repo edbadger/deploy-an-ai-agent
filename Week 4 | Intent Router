@@ -1,0 +1,213 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "3f5c85f1-8107-4026-8d3c-88f6c45264cf",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1,
+      "position": [
+        -832,
+        112
+      ],
+      "webhookId": "b81dcf46-95cb-4309-8688-430840f579f0"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.output }}",
+              "operation": "contains",
+              "value2": "PLAN"
+            }
+          ]
+        }
+      },
+      "id": "2e5993c2-75ad-46f1-ae2f-44cf8e337163",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -480,
+        480
+      ],
+      "id": "b4ec8579-18ce-4818-85df-694baaba593b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "K4pI7fegL1NQI6I2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -304,
+        480
+      ],
+      "id": "b0139c14-6a2f-486d-b5a4-cb72bd54918d",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You classify travel requests. Based on the user's message and memory of the conversation, respond with exactly one word:\n\nEXPLORE - if the user hasn't decided where to go and needs help deciding\nPLAN - only if the user has chosen a specific destination and wants help planning their trip\n\nRespond with only EXPLORE or PLAN. Nothing else."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -576,
+        112
+      ],
+      "id": "94f305fc-628d-402a-8b44-4dada5824286",
+      "name": "Routing Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Chat Trigger').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a practical trip planner. The user has already chosen their destination.\n\nYour approach:\n- Ask about trip length, travel dates, and any must-see items\n- Create a day-by-day itinerary\n- Include a mix of popular attractions and local gems\n- Add practical tips (best times to visit, booking advice)\n\nBe specific and actionable. Give them a plan they can actually follow."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        -48
+      ],
+      "id": "81a321a0-a695-43a0-a168-f8e23737b697",
+      "name": "Trip Planner"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Chat Trigger').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a friendly travel advisor helping users discover their perfect destination.\n\nYour approach:\n- Ask about their preferences (beach vs city, adventure vs relaxation, budget, time of year)\n- Suggest 2-3 destinations that match their criteria\n- Highlight what makes each destination special\n- Help them narrow down their options\n\nBe enthusiastic and helpful. Use your knowledge to give specific, useful recommendations."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -16,
+        224
+      ],
+      "id": "185594a0-2222-4b75-ab35-f932da4cb1ac",
+      "name": "Destination Explorer"
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Routing Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Intent": {
+      "main": [
+        [
+          {
+            "node": "Trip Planner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Destination Explorer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Routing Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Trip Planner",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Destination Explorer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Routing Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Trip Planner",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Destination Explorer",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Routing Agent": {
+      "main": [
+        [
+          {
+            "node": "Route by Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5ecce7eb81f8fd70e4c5200c82cdcb7c58516d88e35aa4d5ade4a6b248e237a0"
+  }
+}
