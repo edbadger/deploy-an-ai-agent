@@ -1,0 +1,163 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b5234200-db9c-4aed-952e-00bcf8cd0760",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        48
+      ],
+      "webhookId": "58ea0155-7d2d-4737-be72-f1d4d4738734"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful travel planning assistant with access to tools.\n\nWhen users ask about:\n- Costs, budgets, or currency: Use the calculator tool\n- Exchange rates for GBP\n- Weather or climate: Use the weather tool\n- General travel advice: Answer directly from your knowledge\n\nAlways use tools when the question requires current data or precise calculations.\nFor the weather tool, provide latitude and longitude of the city (you know major city coordinates).\nExample coordinates: London (51.5, -0.12), Paris (48.85, 2.35), Tokyo (35.68, 139.76), New York (40.71, -74.01).\n\nBe friendly, specific, and helpful."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        16,
+        48
+      ],
+      "id": "a4179d0b-957f-49db-8efc-428177efd8b7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        272
+      ],
+      "id": "cce09790-fe76-402b-b073-5c93404fc8c5",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "K4pI7fegL1NQI6I2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        64,
+        272
+      ],
+      "id": "1564ff31-a74b-4f08-b650-41eb8ca18d7b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Gets latest exchange rates for GBP",
+        "url": "https://api.exchangerate-api.com/v4/latest/GBP",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        352,
+        272
+      ],
+      "id": "d5e87869-4faa-4ba9-8074-e9eb1a75b0da",
+      "name": "Exchange rates"
+    },
+    {
+      "parameters": {
+        "description": "Performs mathematical calculations. Use this for any arithmetic operations.\nOperations: add, subtract, multiply, divide, percentage.\nParameters: operation (string), a (number), b (number).\nFor percentage, 'a' is the base number and 'b' is the percentage.\nExample: 15% of 100 would be operation='percentage', a=100, b=15.",
+        "jsCode": "const operation = $input.item.json.operation;\nconst a = parseFloat($input.item.json.a);\nconst b = parseFloat($input.item.json.b) || 0;\n\nlet result;\n\nswitch(operation) {\n  case 'add':\n    result = a + b;\n    break;\n  case 'subtract':\n    result = a - b;\n    break;\n  case 'multiply':\n    result = a * b;\n    break;\n  case 'divide':\n    result = b !== 0 ? a / b : 'Cannot divide by zero';\n    break;\n  case 'convert_gbp_to_jpy':\n    result = a * 190;\n    break;\n  case 'convert_gbp_to_eur':\n    result = a * 1.17;\n    break;\n  case 'convert_gbp_to_usd':\n    result = a * 1.27;\n    break;\n  default:\n    result = a * b;\n}\n\nreturn Math.round(result * 100) / 100;",
+        "specifyInputSchema": true,
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n  \t\"operation\": {\n  \t\t\"type\": \"string\",\n  \t\t\"description\": \"calculation to perform\"\n  \t\t},\n    \"a\": {\n  \t\t\"type\": \"number\",\n  \t\t\"description\": \"first number\"\n  \t\t},\n    \"b\": {\n  \t\t\"type\": \"number\",\n  \t\t\"description\": \"second number\"\n  \t\t}\n  \t}\n  }"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        272
+      ],
+      "id": "41d5607b-2bc9-45e8-a4ee-ed8b0ffc1bfa",
+      "name": "Calculator"
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exchange rates": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5ecce7eb81f8fd70e4c5200c82cdcb7c58516d88e35aa4d5ade4a6b248e237a0"
+  }
+}
