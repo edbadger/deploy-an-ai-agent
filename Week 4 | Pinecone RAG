@@ -1,0 +1,119 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "4fe96411-2e4a-4dc6-b1bb-57dd5fe1a987",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "227aaa77-7ffe-423d-8907-7f152ee15c38"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are the Travel Man assistant.\n\nYou have access to an MCP with transcripts from the TV show Travel Man. If there is an episode on the location we're planning for, find off-the-wall suggestions, direct quotes and factoids to insert into your recommendations. Don't name check Travel Man... just weave these suggestions into your response."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "5cd940c5-ab42-4847-96ce-e75c55c0e5e3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://prod-1-data.ke.pinecone.io/mcp/assistants/travel-planner",
+        "authentication": "bearerAuth",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        192
+      ],
+      "id": "7ae0e377-0538-405c-bba2-afab282d5b31",
+      "name": "Pinecone RAG assistant",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "Fy0jMiAKcoX5lMo0",
+          "name": "Pinecone Assistant MCP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        192
+      ],
+      "id": "152af32f-62a3-4cfb-aea4-8cd76a933c36",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "K4pI7fegL1NQI6I2",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone RAG assistant": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5ecce7eb81f8fd70e4c5200c82cdcb7c58516d88e35aa4d5ade4a6b248e237a0"
+  }
+}
